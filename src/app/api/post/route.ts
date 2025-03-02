@@ -104,7 +104,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get('limit') || '100', 10);
+    const limit = parseInt(url.searchParams.get('limit') || '200', 10);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const categoryName = url.searchParams.get('category_name') || '';
 
