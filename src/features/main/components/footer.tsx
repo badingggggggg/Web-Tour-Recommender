@@ -90,9 +90,9 @@ const Footer = () => {
           </div>
           <div>
             <h3 className='mb-4 text-lg font-semibold'>Contact</h3>
-            <p className='text-gray-400'>123 La Union St., Philippines</p>
-            <p className='text-gray-400'>Email: info@launion.com</p>
-            <p className='text-gray-400'>Phone: +63 123 456 789</p>
+            <p className='text-gray-400'>Sta Maria Agoo La Union, Philippines</p>
+            <p className='text-gray-400'>Email: ofianachester878@gmail.com</p>
+            <p className='text-gray-400'>Phone: 09918623833</p>
           </div>
         </div>
         <div className='mt-8 border-t border-gray-700 pt-4 text-center'>

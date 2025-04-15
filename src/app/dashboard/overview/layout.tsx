@@ -115,7 +115,7 @@ export default function OverViewLayout({
         </div>
         <div className='flex flex-col gap-4 md:flex-row'>
           <div className='flex-1'>{users}</div>
-          <div className='flex-1'>{pie_stats}</div>
+          {/* <div className='flex-1'>{pie_stats}</div> */}
         </div>
       </div>
     </PageContainer>
