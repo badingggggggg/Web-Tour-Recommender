@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Menu, Search, X } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from '@/components/ui/dropdown-menu';
 
 interface NavItemProps {
   href: string;
@@ -57,6 +64,7 @@ const MobileNavItem: React.FC<MobileNavItemProps> = ({
 );
 
 const NavBar: React.FC = () => {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -79,9 +87,26 @@ const NavBar: React.FC = () => {
           <Link href='/search'>
             <Search />
           </Link>
-          <Link href='/auth/login'>
-            <Button>Sign in</Button>
-          </Link>
+          {session?.user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className='flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-orange-500 font-semibold uppercase text-white'>
+                  {session.user.full_name?.charAt(0)}
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className='w-40'>
+                <DropdownMenuItem asChild>
+                  <Link href='/dashboard' className='w-full'>
+                    Go to Dashboard
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href='/auth/login'>
+              <Button>Sign in</Button>
+            </Link>
+          )}
         </div>
         {/* Mobile Menu Button */}
         <Button

@@ -1,4 +1,5 @@
 import { AmenitiesType } from './amenities';
+import { ReviewType } from './review';
 
 export type PostType = {
   id?: number;
@@ -16,6 +17,7 @@ export type PostType = {
   image_url?: string;
   rating?: number;
   amenities?: AmenitiesType[];
+  reviews?: ReviewType[];
 };
 
 export type PostItems = {

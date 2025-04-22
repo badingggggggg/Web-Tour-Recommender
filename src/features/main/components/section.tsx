@@ -8,7 +8,7 @@ interface Destination {
   location: string;
   price: string;
   price_currency: string;
-  rating?: number;
+  average_rating?: number;
   category_name?: string;
 }
 
@@ -31,7 +31,7 @@ const Section: React.FC<SectionProps> = ({ title, data }) => (
             location_url={`https://www.google.com/maps/search/?q=${encodeURIComponent(item.title)}`}
             price={parseFloat(item.price)}
             price_currency={item.price_currency}
-            rating={item.rating || 4.5}
+            rating={item.average_rating}
             viewUrl={`/wheretogo/${item.id}`}
           />
         ))}

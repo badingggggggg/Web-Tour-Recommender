@@ -3,15 +3,60 @@
 import { usePost } from '@/hooks/use-post';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { IoLocationSharp } from 'react-icons/io5';
 import { FaStar } from 'react-icons/fa';
 import { LoadingSpinner } from '@/components/common/Loader';
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useCreateReview } from '@/hooks/use-review';
+import { useSession } from 'next-auth/react';
+
+const formSchema = z.object({
+  post_id: z.number().min(1, 'Post ID is required'),
+  rating: z.number().min(1, 'Rating is required'),
+  comment: z.string().min(1, 'Comment is required')
+});
 
 const PostDetails = () => {
   const { postId } = useParams();
   const { data: post, isLoading, error } = usePost(Number(postId));
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { data: session } = useSession();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      post_id: Number(postId),
+      rating: 0,
+      comment: ''
+    }
+  });
+
+  const createReview = useCreateReview();
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      await createReview.mutateAsync(data as any);
+      form.reset({ post_id: Number(postId), rating: 0, comment: '' });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error during amenity creation', error);
+    }
+  };
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -116,21 +161,95 @@ const PostDetails = () => {
             </p>
           </div>
         </div>
-
-        {/* Ratings */}
-        <div className='flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
-          <h2 className='text-sm font-medium text-gray-700'>Ratings</h2>
-          <div className='flex items-center gap-1'>
-            {[...Array(5)].map((_, index) => (
-              <FaStar
-                key={index}
-                className={index < 4 ? 'text-yellow-400' : 'text-gray-300'}
-              />
-            ))}
-            <span className='text-sm text-gray-700'>(4.5)</span>
-          </div>
-        </div>
       </div>
+
+      {/* Reviews Section */}
+      <div className='space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
+        <h2 className='text-sm font-medium text-gray-700'>Reviews</h2>
+        {post.reviews.map((review) => (
+          <div key={review.id} className='border-t pt-4'>
+            <p className='text-sm font-semibold text-gray-800'>
+              {review.full_name}
+            </p>
+            <div className='flex items-center gap-1'>
+              {[...Array(5)].map((_, index) => (
+                <FaStar
+                  key={index}
+                  className={
+                    index < review.rating ? 'text-yellow-400' : 'text-gray-300'
+                  }
+                />
+              ))}
+            </div>
+            <p className='mt-1 text-sm text-gray-600'>{review.comment}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Add Review Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          {session && (
+            <DialogTrigger asChild>
+              <Button className='mt-4'>Add Review</Button>
+            </DialogTrigger>
+          )}
+        </DialogTrigger>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>Add Your Review</DialogTitle>
+            <DialogDescription>
+              Share your experience and rate this post.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            {/* Star Rating */}
+            <div className='flex items-center space-x-1'>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FaStar
+                  key={star}
+                  onClick={() => form.setValue('rating', star)}
+                  className={`cursor-pointer transition-transform ${
+                    star <= form.watch('rating')
+                      ? 'text-yellow-400'
+                      : 'text-gray-300'
+                  }`}
+                />
+              ))}
+              {form.formState.errors.rating && (
+                <p className='text-xs text-red-500'>
+                  {form.formState.errors.rating.message}
+                </p>
+              )}
+            </div>
+
+            {/* Comment Input */}
+            <div className='grid gap-2'>
+              <Label htmlFor='comment'>Comment</Label>
+              <Input
+                id='comment'
+                {...form.register('comment')}
+                placeholder='Write your thoughts...'
+              />
+              {form.formState.errors.comment && (
+                <p className='text-xs text-red-500'>
+                  {form.formState.errors.comment.message}
+                </p>
+              )}
+            </div>
+
+            {/* Hidden post_id (already set in defaultValues, just keep it) */}
+            <input type='hidden' {...form.register('post_id')} />
+
+            <DialogFooter className='mt-4'>
+              <Button type='submit'>
+                {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

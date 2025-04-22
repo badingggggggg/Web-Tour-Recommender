@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { PostType } from 'types/post';
 import PostAmenities from './PostAmenities';
+import Review from './Review';
 
 const Post = {
   create: async (data: PostType) => {
@@ -72,9 +73,13 @@ const Post = {
         }, {});
       }
 
+      // Get avaerage rating
+      const averageRating = await Review.getAverageRatingsByPostIds(postIds);
+
       const finalResults = postResults.map((post: any) => ({
         ...post,
-        images: images[post.id] || []
+        images: images[post.id] || [],
+        average_rating: averageRating[post.id] || 0
       }));
 
       const countQuery = `SELECT COUNT(*) as total FROM tbl_posts p
@@ -98,7 +103,7 @@ const Post = {
       console.error(error);
       throw new Error(error.message);
     }
-  }, 
+  },
 
   getById: async (id: number) => {
     try {
@@ -130,6 +135,10 @@ const Post = {
       // Get Amenities
       const amenities = await PostAmenities.getAmenitiesByPostId(Number(id));
       finalPost.amenities = amenities;
+
+      // Get Reviews
+      const reviews = await Review.getById(Number(id));
+      finalPost.reviews = reviews;
 
       return finalPost;
     } catch (error: any) {
